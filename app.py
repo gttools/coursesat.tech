@@ -15,29 +15,40 @@ def index():
 
 @app.route('/spring2016/')
 def year():
-    schools = set()
-    for course in courses.find():
-        schools.add(course.get('school'))
+    schools = courses.distinct('school')
 
-    return jsonify({'schools': list(schools)})
+    return jsonify({'schools': schools})
 
 @app.route('/spring2016/<school>/')
 def for_school(school):
-    classes = list()
-    for course in courses.find({'school':school}):
-        classes.append(course.get('number'))
-
+    aggregationPipeline = [
+        {
+            '$match': {
+                'school': school
+            },
+        },
+        {
+            '$group': {
+                '_id': None,
+                'classes': {
+                    '$push': '$number'
+                }
+            }
+        }
+    ]
+    result = list(courses.aggregate(aggregationPipeline))
+    classes = result[0].get('classes') if len(result) > 0 else None
+    
     return jsonify({'numbers': classes})
 
 @app.route('/spring2016/<school>/<number>')
 def single_course(school, number):
-    course = courses.find_one({'school':school, 'number':number})
-    del course['_id']
+    course = courses.find_one({'school':school, 'number':number}, {'_id': 0})
+
     return jsonify(course)
 
 
 
 if __name__ == '__main__':
-
 
     app.run()
