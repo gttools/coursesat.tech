@@ -17,7 +17,9 @@ def index():
 def year():
     schools = courses.distinct('school')
 
-    return jsonify({'schools': schools})
+    response = jsonify({'schools': schools})
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    return response
 
 @app.route('/spring2016/<school>/')
 def for_school(school):
@@ -39,13 +41,17 @@ def for_school(school):
     result = list(courses.aggregate(aggregationPipeline))
     classes = result[0].get('classes') if len(result) > 0 else None
     
-    return jsonify({'numbers': classes})
+    response = jsonify({'numbers': classes})
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    return response
 
 @app.route('/spring2016/<school>/<number>')
 def single_course(school, number):
     course = courses.find_one({'school':school, 'number':number}, {'_id': 0})
 
-    return jsonify(course)
+    response = jsonify(course)
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    return response
 
 
 
